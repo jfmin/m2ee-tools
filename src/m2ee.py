@@ -9,7 +9,6 @@
 import cmd
 import string
 import sys
-import yaml
 
 from m2ee import M2EE, logger
 
@@ -151,7 +150,7 @@ class CLI(cmd.Cmd):
                 logger.info("There are no currently running runtime requests.")
             else:
                 print("Current running Runtime Requests:")
-                print(yaml.safe_dump(feedback))
+                print(json.dumps(feedback))
 
     def do_show_all_thread_stack_traces(self, args):
         m2eeresp = self.m2ee.client.get_all_thread_stack_traces()
@@ -234,12 +233,6 @@ Advanced commands:
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser()
-    parser.add_option(
-        "-c",
-        action="append",
-        type="string",
-        dest="yaml_files"
-    )
     parser.add_option(
         "-v",
         "--verbose",

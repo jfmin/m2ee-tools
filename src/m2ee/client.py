@@ -10,9 +10,9 @@ import socket
 from log import logger
 
 try:
-    import httplib2
+    import urllib2
 except ImportError:
-    logger.critical("Failed to import httplib2. This module is needed by "
+    logger.critical("Failed to import httplib. This module is needed by "
                     "m2ee. Please povide it on the python library path")
     raise
 
@@ -45,16 +45,21 @@ class M2EEClient:
         if params:
             body["params"] = params
         body = json.dumps(body)
-        h = httplib2.Http(timeout=timeout)  # httplib does not like os.fork
         logger.trace("M2EE request body: %s" % body)
-        (response_headers, response_body) = h.request(self._url, "POST", body,
-                                                      headers=self._headers)
-        if (response_headers['status'] == "200"):
-            logger.trace("M2EE response: %s" % response_body)
-            return M2EEResponse(action, json.loads(response_body))
+        req = urllib2.Request(
+            url=self._url,
+            data=body,
+            headers=self._headers,
+        )
+        response = urllib2.urlopen(req, timeout=timeout)
+        response_headers = response.info()
+        parsed_response = json.load(response)
+        if (response.getcode() == 200):
+            logger.trace("M2EE response: %s" % parsed_response)
+            return M2EEResponse(action, parsed_response)
         else:
             logger.error("non-200 http status code: %s %s" %
-                         (response_headers, response_body))
+                         (response_headers, parsed_response))
 
     def ping(self, timeout=5):
         try:
