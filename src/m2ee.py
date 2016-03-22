@@ -90,8 +90,30 @@ class CLI(cmd.Cmd):
     def do_statistics(self, args):
         stats = self.m2ee.client.runtime_statistics().get_feedback()
         stats.update(self.m2ee.client.server_statistics().get_feedback())
-        print(json.dumps(stats, sort_keys=True,
-                         indent=4, separators=(',', ': ')))
+        if args == 'oneline':
+            print(','.join(map(str, [
+                stats['memory']['code'],
+                stats['memory']['committed_heap'],
+                stats['memory']['committed_nonheap'],
+                stats['memory']['eden'],
+                stats['memory']['init_heap'],
+                stats['memory']['init_nonheap'],
+                stats['memory']['max_heap'],
+                stats['memory']['max_nonheap'],
+                stats['memory']['permanent'],
+                stats['memory']['survivor'],
+                stats['memory']['tenured'],
+                stats['memory']['used_heap'],
+                stats['memory']['used_nonheap'],
+                stats['connectionbus']['delete'],
+                stats['connectionbus']['insert'],
+                stats['connectionbus']['select'],
+                stats['connectionbus']['transaction'],
+                stats['connectionbus']['update'],
+            ])))
+        else:
+            print(json.dumps(stats, sort_keys=True,
+                             indent=4, separators=(',', ': ')))
 
     def do_show_cache_statistics_raw(self, args):
         stats = self.m2ee.client.cache_statistics().get_feedback()
@@ -234,6 +256,9 @@ Available commands:
 
 Advanced commands:
  statistics - show all application statistics that can be used for monitoring
+              use 'statistics oneline' to print mem/connectionbus numbers to
+              one line
+ show_cache_statistics_raw - show all non persistent entities in the cache
  show_all_thread_stack_traces - show all low-level JVM threads with stack trace
  profiler - start the profiler (experimental)
  check_health - manually execute health check
