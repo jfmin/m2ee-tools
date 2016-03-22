@@ -15,6 +15,13 @@ from m2ee import M2EE, logger
 # Use json if available. If not (python 2.5) we need to import the simplejson
 # module instead, which has to be available.
 try:
+    import yaml
+except ImportError:
+    logger.warning('yaml could not be found, get_current_runtime_requests will'
+                   ' be unreadable. Install yaml via "pip install pyyaml" and '
+                   'restart m2ee.')
+
+try:
     import json
 except ImportError:
     try:
@@ -150,7 +157,11 @@ class CLI(cmd.Cmd):
                 logger.info("There are no currently running runtime requests.")
             else:
                 print("Current running Runtime Requests:")
-                print(json.dumps(feedback))
+                try:
+                    print(yaml.safe_dump(feedback))
+                except NameError:
+                    print('install yaml via pip for more readable output')
+                    print(json.dumps(feedback))
 
     def do_show_all_thread_stack_traces(self, args):
         m2eeresp = self.m2ee.client.get_all_thread_stack_traces()
