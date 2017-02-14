@@ -822,6 +822,9 @@ class CLI(cmd.Cmd, object):
         except m2ee.exceptions.M2EEException as e:
             logger.error(e)
 
+    def unchecked_onecmd(self, line):
+        super(CLI, self).onecmd(line)
+
     # if the emptyline function is not defined, Cmd will automagically
     # repeat the previous command given, and that's not what we want
     def emptyline(self):
@@ -979,7 +982,14 @@ def main():
     )
     atexit.register(cli._cleanup_logging)
     if args:
-        cli.onecmd(' '.join(args))
+        try:
+            cli.unchecked_onecmd(' '.join(args))
+        except (m2ee.client.M2EEAdminNotAvailable,
+                m2ee.client.M2EEAdminException,
+                m2ee.client.M2EEAdminHTTPException,
+                m2ee.exceptions.M2EEException) as e:
+            logger.error(e)
+            sys.exit(1)
     else:
         cli.cmdloop_handle_ctrl_c()
 
